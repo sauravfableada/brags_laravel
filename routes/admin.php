@@ -20,6 +20,12 @@ Route::middleware(['auth:api', 'role:Admin'])->group(function () {
         ]);
     });
 
+    // Brand Management
+    Route::post('/brands', [\App\Http\Controllers\API\BrandRegisterController::class, 'register']);
+
+    // Category Management
+    Route::apiResource('categories', \App\Http\Controllers\API\Admin\CategoryController::class);
+
     // Settings Routes
     Route::get('/settings/smtp', [SettingController::class, 'getSmtp']);
     Route::post('/settings/smtp', [SettingController::class, 'updateSmtp']);

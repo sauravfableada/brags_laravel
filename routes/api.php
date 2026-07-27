@@ -11,6 +11,14 @@ Route::prefix('v1')->group(function () {
     // Brand Routes
     Route::post('/brand/register', [BrandRegisterController::class, 'register']);
     Route::post('/brand/login', [AuthController::class, 'login']);
+
+    // Seller Routes
+    Route::post('/seller/calculator/sbs', [\App\Http\Controllers\API\SellerCalculatorController::class, 'sbs']);
+
+    // Bragger Routes
+    Route::post('/bragger/register', [\App\Http\Controllers\API\BraggerRegisterController::class, 'register']);
+    Route::post('/bragger/login', [AuthController::class, 'login']);
+    Route::post('/bragger/calculator', [\App\Http\Controllers\API\BraggerCalculatorController::class, 'calculate']);
     // Auth Routes
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);

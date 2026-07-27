@@ -17,6 +17,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application Public Path
+    |--------------------------------------------------------------------------
+    |
+    | This value is the public path of your application. This is used when the
+    | application needs to generate URLs to your application's assets.
+    |
+    */
+
+    'public_path' => env('PUBLIC_PATH', '/'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |
