@@ -8,6 +8,8 @@ use App\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\SendLoginOtpRequest;
+use App\Http\Requests\Auth\VerifyLoginOtpRequest;
 
 class AuthController extends Controller
 {
@@ -52,6 +54,38 @@ class AuthController extends Controller
         $result = $this->authService->login($validated);
         
         return $this->successResponse($result, 'User logged in successfully.');
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/v1/login/otp/send",
+     *     summary="Send Login OTP",
+     *     tags={"Authentication"},
+     *     @OA\Response(response=200, description="Login OTP sent successfully")
+     * )
+     */
+    public function sendLoginOtp(SendLoginOtpRequest $request)
+    {
+        $validated = $request->validated();
+        $result = $this->authService->sendLoginOtp($validated);
+        
+        return $this->successResponse($result, 'Login OTP sent successfully.');
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/v1/login/otp/verify",
+     *     summary="Login with OTP",
+     *     tags={"Authentication"},
+     *     @OA\Response(response=200, description="Login successful")
+     * )
+     */
+    public function loginWithOtp(VerifyLoginOtpRequest $request)
+    {
+        $validated = $request->validated();
+        $result = $this->authService->loginWithOtp($validated);
+        
+        return $this->successResponse($result, 'User logged in successfully with OTP.');
     }
 
     /**

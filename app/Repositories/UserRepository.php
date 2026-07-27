@@ -21,4 +21,11 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
     {
         return $this->model->where('email', $login)->orWhere('username', $login)->first();
     }
+
+    public function findByPhone(string $phone)
+    {
+        return $this->model->whereHas('detail', function ($query) use ($phone) {
+            $query->where('phone', $phone);
+        })->first();
+    }
 }

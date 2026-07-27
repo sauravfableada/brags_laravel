@@ -4,7 +4,7 @@ namespace App\Http\Requests\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class LoginRequest extends FormRequest
+class VerifyOtpRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -14,9 +14,8 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email_username' => ['required', 'string'],
-            'password' => ['required', 'string'],
-            'role' => ['nullable', 'string', 'in:admin,customer,seller'],
+            'email' => ['required', 'email', 'exists:users,email'],
+            'otp' => ['required', 'string', 'size:6'],
         ];
     }
 }

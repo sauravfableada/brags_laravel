@@ -33,8 +33,24 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
+
+        $middleware->redirectGuestsTo(function (\Illuminate\Http\Request $request) {
+            if ($request->is('api/*')) {
+                return null; // Prevents RouteNotFoundException by bypassing redirect calculation
+            }
+            return route('login');
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->dontReport([
+            \Illuminate\Auth\AuthenticationException::class,
+            \League\OAuth2\Server\Exception\OAuthServerException::class,
+        ]);
+
+        $exceptions->shouldRenderJsonWhen(function (\Illuminate\Http\Request $request) {
+            return $request->is('api/*');
+        });
+
         $exceptions->render(function (\Illuminate\Validation\ValidationException $e, \Illuminate\Http\Request $request) {
             if ($request->is('api/*')) {
                 return response()->json([
@@ -42,6 +58,24 @@ return Application::configure(basePath: dirname(__DIR__))
                     'message' => 'The given data was invalid.',
                     'errors'  => $e->errors(),
                 ], 422);
+            }
+        });
+
+        $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, \Illuminate\Http\Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthenticated. Please log in again.',
+                ], 401);
+            }
+        });
+
+        $exceptions->render(function (\League\OAuth2\Server\Exception\OAuthServerException $e, \Illuminate\Http\Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid or expired token. Please log in again.',
+                ], 401);
             }
         });
     })->create();
