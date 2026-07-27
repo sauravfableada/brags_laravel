@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brand Register API Documentation</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; }
+        h1, h2 { color: #2c3e50; }
+        .endpoint { background-color: #e8f4f8; padding: 15px; border-left: 5px solid #3498db; border-radius: 4px; margin-bottom: 20px; font-family: monospace; font-size: 1.1em; }
+        .method { background-color: #2ecc71; color: white; padding: 3px 8px; border-radius: 3px; font-weight: bold; margin-right: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; background-color: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f2f2f2; font-weight: bold; }
+        .required { color: #e74c3c; font-weight: bold; }
+        .type { color: #7f8c8d; font-family: monospace; }
+        pre { background-color: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 5px; overflow-x: auto; font-family: 'Courier New', Courier, monospace; }
+        .section { background-color: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 30px; }
+    </style>
+</head>
+<body>
+    <h1>Brand Register API</h1>
+    
+    <div class="section">
+        <h2>Endpoint</h2>
+        <div class="endpoint">
+            <span class="method">POST</span> /api/v1/brand/register
+        </div>
+        <p><strong>Content-Type:</strong> <code>multipart/form-data</code></p>
+    </div>
+
+    <div class="section">
+        <h2>Form Data Parameters</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Parameter Name</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Step 1 -->
+                <tr><td colspan="4" style="background-color: #f8f9fa; font-weight: bold;">Step 1: Brand Information</td></tr>
+                <tr><td>brand_name</td><td class="type">string</td><td class="required">Yes</td><td>Name of the brand. Max 255 chars.</td></tr>
+                <tr><td>brand_logo</td><td class="type">file (image)</td><td class="required">Yes</td><td>Brand logo image file (max 2MB).</td></tr>
+                <tr><td>trademark_office</td><td class="type">string</td><td class="required">Yes</td><td>The office where the trademark is registered.</td></tr>
+                <tr><td>trademark_registration_number</td><td class="type">string</td><td class="required">Yes</td><td>The trademark registration number.</td></tr>
+                <tr><td>brand_description</td><td class="type">string</td><td class="required">Yes</td><td>Description of the brand.</td></tr>
+
+                <!-- Step 2 -->
+                <tr><td colspan="4" style="background-color: #f8f9fa; font-weight: bold;">Step 2: Business Information</td></tr>
+                <tr><td>business_name</td><td class="type">string</td><td class="required">Yes</td><td>Name of the business.</td></tr>
+                <tr><td>business_address</td><td class="type">string</td><td class="required">Yes</td><td>Full address of the business.</td></tr>
+                <tr><td>business_contact_email</td><td class="type">string (email)</td><td class="required">Yes</td><td>Contact email (must be unique). Will be used as login.</td></tr>
+                <tr><td>primary_contact_name</td><td class="type">string</td><td class="required">Yes</td><td>Name of the primary contact person.</td></tr>
+                <tr><td>phone_number_country</td><td class="type">string</td><td>No</td><td>Country code for phone number.</td></tr>
+                <tr><td>phone_number</td><td class="type">string</td><td>No</td><td>Contact phone number.</td></tr>
+                <tr><td>website_url</td><td class="type">string (url)</td><td>No</td><td>Business website URL.</td></tr>
+                <tr><td>password</td><td class="type">string</td><td class="required">Yes</td><td>Password for the new user account (min 8 chars).</td></tr>
+                <tr><td>password_confirmation</td><td class="type">string</td><td class="required">Yes</td><td>Must match the password.</td></tr>
+
+                <!-- Step 3 -->
+                <tr><td colspan="4" style="background-color: #f8f9fa; font-weight: bold;">Step 3: Manufacturing & Distribution</td></tr>
+                <tr><td>manufacturing_locations</td><td class="type">string</td><td class="required">Yes</td><td>Where products are manufactured.</td></tr>
+                <tr><td>distribution_channels</td><td class="type">string</td><td class="required">Yes</td><td>Channels of distribution.</td></tr>
+                <tr><td>authorized_resellers</td><td class="type">string</td><td>No</td><td>List of authorized resellers.</td></tr>
+                <tr><td>product_supply_chain</td><td class="type">string</td><td>No</td><td>Details about the supply chain.</td></tr>
+
+                <!-- Step 4 -->
+                <tr><td colspan="4" style="background-color: #f8f9fa; font-weight: bold;">Step 4: Product Information</td></tr>
+                <tr><td>product_categories</td><td class="type">string</td><td class="required">Yes</td><td>Categories the products belong to.</td></tr>
+                <tr><td>products[0][identifier]</td><td class="type">string</td><td class="required">Yes</td><td>Product ID (EAN, GTIN). At least 1 product (index 0 to 4).</td></tr>
+                <tr><td>products[0][image]</td><td class="type">file (image)</td><td class="required">Yes</td><td>Real life photo of the product.</td></tr>
+
+                <!-- Step 5 -->
+                <tr><td colspan="4" style="background-color: #f8f9fa; font-weight: bold;">Step 5: Brand Protection Preferences</td></tr>
+                <tr><td>sell_under_own_brand</td><td class="type">boolean (1/0)</td><td class="required">Yes</td><td>Would you like to sell on Brags under your own Brand Name?</td></tr>
+                <tr><td>seller_email</td><td class="type">string (email)</td><td>No</td><td>Registered Seller Email Address.</td></tr>
+                <tr><td>store_url</td><td class="type">string (url)</td><td>No</td><td>Brags Store URL.</td></tr>
+                <tr><td>approve_resellers</td><td class="type">boolean (1/0)</td><td class="required">Yes</td><td>Approve resellers before they sell?</td></tr>
+                <tr><td>additional_documentation</td><td class="type">file (pdf,doc)</td><td>No</td><td>Additional documentation (max 5MB).</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Success Response</h2>
+        <p><strong>Status:</strong> <code>201 Created</code></p>
+        <pre>
+{
+    "success": true,
+    "message": "Brand registered successfully.",
+    "data": {
+        "user": {
+            "name": "Saurav",
+            "email": "test@example.com",
+            "updated_at": "2026-07-27T06:00:00.000000Z",
+            "created_at": "2026-07-27T06:00:00.000000Z",
+            "id": 1
+        },
+        "brand": {
+            "user_id": 1,
+            "brand_name": "My Brand",
+            "brand_logo": "brands/logos/xyz123.jpg",
+            "business_contact_email": "test@example.com",
+            "sell_under_own_brand": 1,
+            "approve_resellers": 1,
+            "id": 1,
+            "registration_products": [
+                {
+                    "id": 1,
+                    "brand_id": 1,
+                    "product_identifier": "EAN123",
+                    "product_image": "brands/products/abc456.jpg"
+                }
+            ]
+        }
+    }
+}
+        </pre>
+    </div>
+</body>
+</html>

@@ -5,8 +5,12 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\ProfileController;
 use App\Http\Controllers\API\ForgotPasswordController;
+use App\Http\Controllers\API\BrandRegisterController;
 
 Route::prefix('v1')->group(function () {
+    // Brand Routes
+    Route::post('/brand/register', [BrandRegisterController::class, 'register']);
+    Route::post('/brand/login', [AuthController::class, 'login']);
     // Auth Routes
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
