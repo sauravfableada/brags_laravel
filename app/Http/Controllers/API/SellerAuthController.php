@@ -32,8 +32,9 @@ class SellerAuthController extends Controller
     public function login(LoginRequest $request)
     {
         $validated = $request->validated();
+        $loginKey = $validated['login'] ?? $validated['email_username'] ?? null;
 
-        $user = $this->userRepository->findByLogin($validated['login']);
+        $user = $this->userRepository->findByLogin($loginKey);
 
         if (!$user || !Hash::check($validated['password'], $user->password)) {
             throw ValidationException::withMessages([
@@ -44,6 +45,11 @@ class SellerAuthController extends Controller
         // Verify the user is a seller
         if (!$user->hasRole('Seller')) {
             return $this->errorResponse('Unauthorized access. Seller privileges required.', null, 403);
+        }
+
+        // Save FCM token for Push Notifications
+        if (!empty($validated['fcm_token'])) {
+            $user->update(['fcm_token' => $validated['fcm_token']]);
         }
 
         $token = $user->createToken('seller_auth_token')->accessToken;

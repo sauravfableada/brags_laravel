@@ -33,8 +33,9 @@ class AdminAuthController extends Controller
     public function login(LoginRequest $request)
     {
         $validated = $request->validated();
+        $loginKey = $validated['login'] ?? $validated['email_username'] ?? null;
 
-        $user = $this->userRepository->findByLogin($validated['login']);
+        $user = $this->userRepository->findByLogin($loginKey);
 
         if (!$user || !Hash::check($validated['password'], $user->password)) {
             throw ValidationException::withMessages([
@@ -45,6 +46,11 @@ class AdminAuthController extends Controller
         // Verify the user is an admin
         if (!$user->hasRole('Admin')) {
             return $this->errorResponse('Unauthorized access. Admin privileges required.', null, 403);
+        }
+
+        // Save FCM token for Push Notifications
+        if (!empty($validated['fcm_token'])) {
+            $user->update(['fcm_token' => $validated['fcm_token']]);
         }
 
         $token = $user->createToken('admin_auth_token')->accessToken;
