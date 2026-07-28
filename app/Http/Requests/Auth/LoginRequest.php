@@ -14,9 +14,11 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email_username' => ['required', 'string'],
+            'login' => ['required_without:email_username', 'string'],
+            'email_username' => ['required_without:login', 'string'],
             'password' => ['required', 'string'],
             'role' => ['nullable', 'string', 'in:admin,customer,seller,brand,bragger'],
+            'fcm_token' => ['nullable', 'string'],
         ];
     }
 }
