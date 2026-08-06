@@ -211,31 +211,113 @@ class ApiDocsController extends Controller
             if ($method === 'GET' && !str_contains($uri, '{')) {
                 return [
                     'title' => 'List All Categories',
-                    'description' => 'Retrieve catalog category hierarchy with parent and subcategory relations.',
+                    'description' => 'Retrieve full catalog category hierarchy with parent relations and all configuration fields.',
                     'params' => [],
                     'requestExample' => null,
                     'responses' => [
                         '200' => [
-                            ['id' => 1, 'name' => 'Electronics', 'slug' => 'electronics', 'parent_id' => null, 'thumbnail' => 'categories/electronics.png', 'parent' => null],
-                            ['id' => 2, 'name' => 'Smartphones', 'slug' => 'smartphones', 'parent_id' => 1, 'thumbnail' => 'categories/smartphones.png', 'parent' => ['id' => 1, 'name' => 'Electronics']]
-                        ]
+                            'success' => true,
+                            'message' => 'Categories retrieved successfully.',
+                            'data' => [
+                                [
+                                    'id' => 1, 'name' => 'Electronics', 'slug' => 'electronics',
+                                    'parent_id' => null, 'description' => 'All electronic devices.',
+                                    'display_type' => 'default',
+                                    'thumbnail' => 'http://127.0.0.1:8000/storage/categories/electronics.png',
+                                    'requires_approval' => false,
+                                    'content_restriction' => 'none',
+                                    'restriction_message' => null,
+                                    'referral_rate_type' => 'percentage',
+                                    'referral_rate' => 5.00,
+                                    'disable_referrals' => false,
+                                    'category_icon' => 'http://127.0.0.1:8000/storage/categories/icons/electronics-icon.png',
+                                    'page_title_background' => 'http://127.0.0.1:8000/storage/categories/backgrounds/electronics-bg.jpg',
+                                    'parent' => null
+                                ],
+                                [
+                                    'id' => 2, 'name' => 'Smartphones', 'slug' => 'smartphones',
+                                    'parent_id' => 1, 'description' => 'Mobile phones & accessories.',
+                                    'display_type' => 'products',
+                                    'thumbnail' => 'http://127.0.0.1:8000/storage/categories/smartphones.png',
+                                    'requires_approval' => true,
+                                    'content_restriction' => 'logged_in',
+                                    'restriction_message' => 'Please log in to view this category.',
+                                    'referral_rate_type' => 'fixed',
+                                    'referral_rate' => 2.50,
+                                    'disable_referrals' => false,
+                                    'category_icon' => null,
+                                    'page_title_background' => null,
+                                    'parent' => ['id' => 1, 'name' => 'Electronics']
+                                ]
+                            ]
+                        ],
+                        '401' => ['success' => false, 'message' => 'Unauthenticated.'],
+                        '403' => ['success' => false, 'message' => 'Unauthorized access. Admin privileges required.']
                     ]
                 ];
             }
             if ($method === 'POST') {
                 return [
                     'title' => 'Create Category',
-                    'description' => 'Store a new catalog category with optional parent ID and thumbnail image.',
+                    'description' => 'Store a new catalog category. Supports parent nesting, thumbnail, icon, page background, referral settings, content restriction, and approval flags. Use multipart/form-data when uploading files.',
                     'params' => [
-                        ['name' => 'name', 'type' => 'string', 'required' => true, 'desc' => 'Category Name'],
-                        ['name' => 'slug', 'type' => 'string', 'required' => false, 'desc' => 'URL slug (auto-generated if empty)'],
-                        ['name' => 'parent_id', 'type' => 'integer', 'required' => false, 'desc' => 'Parent Category ID'],
-                        ['name' => 'thumbnail', 'type' => 'file', 'required' => false, 'desc' => 'Thumbnail Image File']
+                        ['name' => 'name',                  'type' => 'string',  'required' => true,  'desc' => 'Category display name'],
+                        ['name' => 'slug',                  'type' => 'string',  'required' => false, 'desc' => 'URL slug — auto-generated from name if omitted'],
+                        ['name' => 'parent_id',             'type' => 'integer', 'required' => false, 'desc' => 'Parent Category ID for sub-category nesting'],
+                        ['name' => 'description',           'type' => 'string',  'required' => false, 'desc' => 'Category description text'],
+                        ['name' => 'display_type',          'type' => 'string',  'required' => false, 'desc' => 'Layout type: default | products | subcategories | both'],
+                        ['name' => 'thumbnail',             'type' => 'file',    'required' => false, 'desc' => 'Thumbnail image (jpg, jpeg, png, webp — max 2MB)'],
+                        ['name' => 'requires_approval',     'type' => 'boolean', 'required' => false, 'desc' => 'Whether seller listings in this category require admin approval'],
+                        ['name' => 'content_restriction',   'type' => 'string',  'required' => false, 'desc' => 'Access restriction: none | logged_in | subscription'],
+                        ['name' => 'restriction_message',   'type' => 'string',  'required' => false, 'desc' => 'Message shown to users who cannot access this category'],
+                        ['name' => 'referral_rate_type',    'type' => 'string',  'required' => false, 'desc' => 'Referral commission type: fixed | percentage'],
+                        ['name' => 'referral_rate',         'type' => 'numeric', 'required' => false, 'desc' => 'Referral commission value (e.g. 5.00 for 5%)'],
+                        ['name' => 'disable_referrals',     'type' => 'boolean', 'required' => false, 'desc' => 'Set true to disable referral commissions for this category'],
+                        ['name' => 'category_icon',         'type' => 'file',    'required' => false, 'desc' => 'Category icon image (jpg, jpeg, png, webp, svg — max 1MB)'],
+                        ['name' => 'page_title_background', 'type' => 'file',    'required' => false, 'desc' => 'Full-width page title banner/background (jpg, jpeg, png, webp — max 4MB)']
                     ],
-                    'requestExample' => ['name' => 'Laptops & Computers', 'slug' => 'laptops-computers', 'parent_id' => 1],
+                    'requestExample' => [
+                        'name'                  => 'Laptops & Computers',
+                        'slug'                  => 'laptops-computers',
+                        'parent_id'             => 1,
+                        'description'           => 'Laptops, desktops, and computing accessories.',
+                        'display_type'          => 'products',
+                        'requires_approval'     => true,
+                        'content_restriction'   => 'logged_in',
+                        'restriction_message'   => 'Please log in to browse this category.',
+                        'referral_rate_type'    => 'percentage',
+                        'referral_rate'         => 5.00,
+                        'disable_referrals'     => false,
+                        'thumbnail'             => '(binary file)',
+                        'category_icon'         => '(binary file)',
+                        'page_title_background' => '(binary file)'
+                    ],
                     'responses' => [
-                        '201' => ['id' => 3, 'name' => 'Laptops & Computers', 'slug' => 'laptops-computers', 'parent_id' => 1, 'thumbnail' => 'categories/laptops.png', 'created_at' => date('Y-m-d H:i:s')],
-                        '422' => ['message' => 'The given data was invalid.', 'errors' => ['name' => ['The category name field is required.']]]
+                        '201' => [
+                            'success' => true,
+                            'message' => 'Category created successfully.',
+                            'data' => [
+                                'id'                    => 3,
+                                'name'                  => 'Laptops & Computers',
+                                'slug'                  => 'laptops-computers',
+                                'parent_id'             => 1,
+                                'description'           => 'Laptops, desktops, and computing accessories.',
+                                'display_type'          => 'products',
+                                'thumbnail'             => 'http://127.0.0.1:8000/storage/categories/laptops.png',
+                                'requires_approval'     => true,
+                                'content_restriction'   => 'logged_in',
+                                'restriction_message'   => 'Please log in to browse this category.',
+                                'referral_rate_type'    => 'percentage',
+                                'referral_rate'         => 5.00,
+                                'disable_referrals'     => false,
+                                'category_icon'         => 'http://127.0.0.1:8000/storage/categories/icons/laptops-icon.png',
+                                'page_title_background' => 'http://127.0.0.1:8000/storage/categories/backgrounds/laptops-bg.jpg',
+                                'created_at'            => date('Y-m-d H:i:s')
+                            ]
+                        ],
+                        '422' => ['success' => false, 'message' => 'The given data was invalid.', 'errors' => ['name' => ['The name field is required.'], 'referral_rate_type' => ['The selected referral rate type is invalid.']]],
+                        '401' => ['success' => false, 'message' => 'Unauthenticated.'],
+                        '403' => ['success' => false, 'message' => 'Unauthorized access. Admin privileges required.']
                     ]
                 ];
             }
@@ -243,41 +325,195 @@ class ApiDocsController extends Controller
                 if ($method === 'GET') {
                     return [
                         'title' => 'Get Category Details',
-                        'description' => 'Display specific category details by ID with parent and child subcategories.',
-                        'params' => [['name' => 'category', 'type' => 'integer path', 'required' => true, 'desc' => 'Category ID']],
+                        'description' => 'Display a specific category by ID with all configuration fields, parent, and child subcategories.',
+                        'params' => [['name' => 'category', 'type' => 'integer path', 'required' => true, 'desc' => 'Category ID (route parameter)']],
                         'requestExample' => null,
                         'responses' => [
-                            '200' => ['id' => 1, 'name' => 'Electronics', 'slug' => 'electronics', 'parent' => null, 'children' => [['id' => 2, 'name' => 'Smartphones']]],
-                            '404' => ['message' => 'Category not found.']
+                            '200' => [
+                                'success' => true,
+                                'message' => 'Category retrieved successfully.',
+                                'data' => [
+                                    'id'                    => 1,
+                                    'name'                  => 'Electronics',
+                                    'slug'                  => 'electronics',
+                                    'description'           => 'All electronic devices.',
+                                    'display_type'          => 'default',
+                                    'thumbnail'             => 'http://127.0.0.1:8000/storage/categories/electronics.png',
+                                    'requires_approval'     => false,
+                                    'content_restriction'   => 'none',
+                                    'restriction_message'   => null,
+                                    'referral_rate_type'    => 'percentage',
+                                    'referral_rate'         => 5.00,
+                                    'disable_referrals'     => false,
+                                    'category_icon'         => 'http://127.0.0.1:8000/storage/categories/icons/electronics-icon.png',
+                                    'page_title_background' => 'http://127.0.0.1:8000/storage/categories/backgrounds/electronics-bg.jpg',
+                                    'parent'                => null,
+                                    'children'              => [
+                                        ['id' => 2, 'name' => 'Smartphones', 'slug' => 'smartphones']
+                                    ]
+                                ]
+                            ],
+                            '404' => ['success' => false, 'message' => 'Category not found.'],
+                            '401' => ['success' => false, 'message' => 'Unauthenticated.']
                         ]
                     ];
                 }
                 if ($method === 'PUT' || $method === 'PATCH') {
                     return [
                         'title' => 'Update Category',
-                        'description' => 'Update category name, slug, or thumbnail image.',
+                        'description' => 'Update any category field including name, slug, thumbnail, icon, page background, referral settings, and content restriction. Use multipart/form-data when uploading files.',
                         'params' => [
-                            ['name' => 'category', 'type' => 'integer path', 'required' => true, 'desc' => 'Category ID'],
-                            ['name' => 'name', 'type' => 'string', 'required' => false, 'desc' => 'Updated Name'],
-                            ['name' => 'slug', 'type' => 'string', 'required' => false, 'desc' => 'Updated Slug']
+                            ['name' => 'category',              'type' => 'integer path', 'required' => true,  'desc' => 'Category ID (route parameter)'],
+                            ['name' => 'name',                  'type' => 'string',       'required' => false, 'desc' => 'Updated category name'],
+                            ['name' => 'slug',                  'type' => 'string',       'required' => false, 'desc' => 'Updated URL slug'],
+                            ['name' => 'parent_id',             'type' => 'integer',      'required' => false, 'desc' => 'New parent category ID'],
+                            ['name' => 'description',           'type' => 'string',       'required' => false, 'desc' => 'Updated description'],
+                            ['name' => 'display_type',          'type' => 'string',       'required' => false, 'desc' => 'Layout type: default | products | subcategories | both'],
+                            ['name' => 'thumbnail',             'type' => 'file',         'required' => false, 'desc' => 'Replacement thumbnail image (old file deleted)'],
+                            ['name' => 'requires_approval',     'type' => 'boolean',      'required' => false, 'desc' => 'Toggle seller listing approval requirement'],
+                            ['name' => 'content_restriction',   'type' => 'string',       'required' => false, 'desc' => 'Access restriction: none | logged_in | subscription'],
+                            ['name' => 'restriction_message',   'type' => 'string',       'required' => false, 'desc' => 'Message shown when user is restricted'],
+                            ['name' => 'referral_rate_type',    'type' => 'string',       'required' => false, 'desc' => 'Referral type: fixed | percentage'],
+                            ['name' => 'referral_rate',         'type' => 'numeric',      'required' => false, 'desc' => 'Referral commission amount'],
+                            ['name' => 'disable_referrals',     'type' => 'boolean',      'required' => false, 'desc' => 'Disable referral commissions for this category'],
+                            ['name' => 'category_icon',         'type' => 'file',         'required' => false, 'desc' => 'Replacement category icon (old file deleted)'],
+                            ['name' => 'page_title_background', 'type' => 'file',         'required' => false, 'desc' => 'Replacement page banner background (old file deleted)']
                         ],
-                        'requestExample' => ['name' => 'Consumer Electronics & Tech', 'slug' => 'consumer-electronics-tech'],
+                        'requestExample' => [
+                            'name'                  => 'Consumer Electronics & Tech',
+                            'slug'                  => 'consumer-electronics-tech',
+                            'requires_approval'     => false,
+                            'content_restriction'   => 'subscription',
+                            'restriction_message'   => 'Upgrade your plan to access this category.',
+                            'referral_rate_type'    => 'fixed',
+                            'referral_rate'         => 3.50,
+                            'disable_referrals'     => false
+                        ],
                         'responses' => [
-                            '200' => ['id' => 1, 'name' => 'Consumer Electronics & Tech', 'slug' => 'consumer-electronics-tech', 'updated_at' => date('Y-m-d H:i:s')],
-                            '404' => ['message' => 'Category not found.']
+                            '200' => [
+                                'success' => true,
+                                'message' => 'Category updated successfully.',
+                                'data' => [
+                                    'id'                    => 1,
+                                    'name'                  => 'Consumer Electronics & Tech',
+                                    'slug'                  => 'consumer-electronics-tech',
+                                    'requires_approval'     => false,
+                                    'content_restriction'   => 'subscription',
+                                    'restriction_message'   => 'Upgrade your plan to access this category.',
+                                    'referral_rate_type'    => 'fixed',
+                                    'referral_rate'         => 3.50,
+                                    'disable_referrals'     => false,
+                                    'updated_at'            => date('Y-m-d H:i:s')
+                                ]
+                            ],
+                            '404' => ['success' => false, 'message' => 'Category not found.'],
+                            '422' => ['success' => false, 'message' => 'The given data was invalid.', 'errors' => ['referral_rate' => ['The referral rate must be at least 0.']]],
+                            '401' => ['success' => false, 'message' => 'Unauthenticated.']
                         ]
                     ];
                 }
                 if ($method === 'DELETE') {
                     return [
                         'title' => 'Delete Category',
-                        'description' => 'Delete a category and remove associated storage files.',
-                        'params' => [['name' => 'category', 'type' => 'integer path', 'required' => true, 'desc' => 'Category ID']],
+                        'description' => 'Permanently delete a category and automatically remove all associated storage files (thumbnail, category icon, page title background).',
+                        'params' => [['name' => 'category', 'type' => 'integer path', 'required' => true, 'desc' => 'Category ID (route parameter)']],
                         'requestExample' => null,
                         'responses' => [
-                            '200' => ['message' => 'Category deleted successfully'],
-                            '404' => ['message' => 'Category not found.']
+                            '200' => ['success' => true, 'message' => 'Category deleted successfully.'],
+                            '404' => ['success' => false, 'message' => 'Category not found.'],
+                            '401' => ['success' => false, 'message' => 'Unauthenticated.'],
+                            '403' => ['success' => false, 'message' => 'Unauthorized access. Admin privileges required.']
                         ]
+                    ];
+                }
+            }
+        }
+
+        if (str_contains($uri, 'admin/products')) {
+            if ($method === 'GET' && !str_contains($uri, '{')) {
+                return [
+                    'title' => 'List All Products',
+                    'description' => 'Retrieve catalog products.',
+                    'params' => [],
+                    'requestExample' => null,
+                    'responses' => [
+                        '200' => [
+                            'success' => true,
+                            'message' => 'Products retrieved successfully.',
+                            'data' => [
+                                [
+                                    'id' => 1, 'name' => 'Sample Product', 'slug' => 'sample-product',
+                                    'vendor_id' => 2, 'brand_id' => 1, 'short_description' => 'Short info',
+                                    'description' => 'Long details...', 'asin' => 'B08F7N8PN5',
+                                    'primary_image' => 'http://127.0.0.1:8000/storage/products/1.jpg',
+                                    'gallery_images' => ['products/1-1.jpg'], 'gallery_360_images' => [],
+                                    'restriction_type' => 'default', 'restriction_display_for' => null,
+                                    'restriction_purchase_for' => null, 'enable_custom_messages' => false
+                                ]
+                            ]
+                        ]
+                    ]
+                ];
+            }
+            if ($method === 'POST') {
+                return [
+                    'title' => 'Create Product',
+                    'description' => 'Store a new product with all its relationships and restriction settings.',
+                    'params' => [
+                        ['name' => 'vendor_id', 'type' => 'integer', 'required' => true, 'desc' => 'Vendor User ID'],
+                        ['name' => 'brand_id', 'type' => 'integer', 'required' => false, 'desc' => 'Brand ID'],
+                        ['name' => 'name', 'type' => 'string', 'required' => true, 'desc' => 'Product Name'],
+                        ['name' => 'slug', 'type' => 'string', 'required' => false, 'desc' => 'URL slug'],
+                        ['name' => 'short_description', 'type' => 'string', 'required' => false, 'desc' => 'Short overview'],
+                        ['name' => 'description', 'type' => 'string', 'required' => false, 'desc' => 'Detailed description'],
+                        ['name' => 'asin', 'type' => 'string', 'required' => false, 'desc' => 'Amazon ASIN'],
+                        ['name' => 'primary_image', 'type' => 'file', 'required' => false, 'desc' => 'Main product image'],
+                        ['name' => 'gallery_images[]', 'type' => 'file array', 'required' => false, 'desc' => 'Multiple gallery images'],
+                        ['name' => 'gallery_360_images[]', 'type' => 'file array', 'required' => false, 'desc' => 'Multiple 360 gallery images'],
+                        ['name' => 'categories[]', 'type' => 'integer array', 'required' => false, 'desc' => 'Array of Category IDs'],
+                        ['name' => 'tags[]', 'type' => 'integer array', 'required' => false, 'desc' => 'Array of Tag IDs'],
+                        ['name' => 'restriction_type', 'type' => 'string', 'required' => false, 'desc' => 'default, message, redirect, template'],
+                        ['name' => 'restriction_display_for[]', 'type' => 'string array', 'required' => false, 'desc' => 'Roles/Plans that can see it'],
+                        ['name' => 'restriction_purchase_for[]', 'type' => 'string array', 'required' => false, 'desc' => 'Roles/Plans that can buy it'],
+                        ['name' => 'enable_custom_messages', 'type' => 'boolean', 'required' => false, 'desc' => 'Enable custom restriction msg']
+                    ],
+                    'requestExample' => [
+                        'vendor_id' => 2,
+                        'name' => 'Awesome Sneakers',
+                        'restriction_type' => 'message',
+                        'enable_custom_messages' => true
+                    ],
+                    'responses' => [
+                        '201' => ['success' => true, 'message' => 'Product created successfully.', 'data' => ['id' => 1]]
+                    ]
+                ];
+            }
+            if (str_contains($uri, '{')) {
+                if ($method === 'GET') {
+                    return [
+                        'title' => 'Get Product Details',
+                        'description' => 'Retrieve a single product by ID.',
+                        'params' => [['name' => 'product', 'type' => 'integer path', 'required' => true, 'desc' => 'Product ID']],
+                        'requestExample' => null,
+                        'responses' => ['200' => ['success' => true, 'data' => ['id' => 1, 'name' => 'Awesome Sneakers']]]
+                    ];
+                }
+                if ($method === 'PUT' || $method === 'PATCH') {
+                    return [
+                        'title' => 'Update Product',
+                        'description' => 'Update an existing product. Use POST with _method=PUT to upload files.',
+                        'params' => [['name' => 'product', 'type' => 'integer path', 'required' => true, 'desc' => 'Product ID']],
+                        'requestExample' => ['name' => 'Updated Sneakers Name'],
+                        'responses' => ['200' => ['success' => true, 'message' => 'Product updated successfully.']]
+                    ];
+                }
+                if ($method === 'DELETE') {
+                    return [
+                        'title' => 'Delete Product',
+                        'description' => 'Remove a product from the catalog.',
+                        'params' => [['name' => 'product', 'type' => 'integer path', 'required' => true, 'desc' => 'Product ID']],
+                        'requestExample' => null,
+                        'responses' => ['200' => ['success' => true, 'message' => 'Product deleted successfully.']]
                     ];
                 }
             }

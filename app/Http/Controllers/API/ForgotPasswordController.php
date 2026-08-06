@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\API;
 
+use OpenApi\Annotations as OA;
+
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;

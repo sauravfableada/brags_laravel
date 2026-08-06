@@ -16,12 +16,46 @@ class Category extends Model
         'description',
         'display_type',
         'thumbnail',
+        'requires_approval',
+        'content_restriction',
+        'restriction_message',
+        'referral_rate_type',
+        'referral_rate',
+        'disable_referrals',
+        'category_icon',
+        'page_title_background',
+    ];
+
+    protected $casts = [
+        'requires_approval' => 'boolean',
+        'disable_referrals' => 'boolean',
+        'referral_rate'     => 'float',
     ];
 
     /**
      * Get the full URL for the thumbnail.
      */
     protected function thumbnail(): Attribute
+    {
+        return Attribute::make(
+            get: fn (?string $value) => $value ? PathHelper::asset('storage/' . $value) : null,
+        );
+    }
+
+    /**
+     * Get the full URL for the category icon.
+     */
+    protected function categoryIcon(): Attribute
+    {
+        return Attribute::make(
+            get: fn (?string $value) => $value ? PathHelper::asset('storage/' . $value) : null,
+        );
+    }
+
+    /**
+     * Get the full URL for the page title background.
+     */
+    protected function pageTitleBackground(): Attribute
     {
         return Attribute::make(
             get: fn (?string $value) => $value ? PathHelper::asset('storage/' . $value) : null,
