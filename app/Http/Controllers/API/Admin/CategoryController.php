@@ -18,7 +18,11 @@ class CategoryController extends Controller
     public function index()
     {
         $categories = Category::with('parent')->get();
-        return response()->json($categories);
+        return response()->json([
+            'success' => true,
+            'message' => 'Categories retrieved successfully.',
+            'data' => $categories
+        ]);
     }
 
     /**
@@ -36,9 +40,21 @@ class CategoryController extends Controller
             $validated['thumbnail'] = $request->file('thumbnail')->store('categories', 'public');
         }
 
+        if ($request->hasFile('category_icon')) {
+            $validated['category_icon'] = $request->file('category_icon')->store('categories/icons', 'public');
+        }
+
+        if ($request->hasFile('page_title_background')) {
+            $validated['page_title_background'] = $request->file('page_title_background')->store('categories/backgrounds', 'public');
+        }
+
         $category = Category::create($validated);
 
-        return response()->json($category, 201);
+        return response()->json([
+            'success' => true,
+            'message' => 'Category created successfully.',
+            'data' => $category
+        ], 201);
     }
 
     /**
@@ -46,7 +62,11 @@ class CategoryController extends Controller
      */
     public function show(Category $category)
     {
-        return response()->json($category->load('parent', 'children'));
+        return response()->json([
+            'success' => true,
+            'message' => 'Category retrieved successfully.',
+            'data' => $category->load('parent', 'children')
+        ]);
     }
 
     /**
@@ -61,17 +81,36 @@ class CategoryController extends Controller
         }
 
         if ($request->hasFile('thumbnail')) {
-            // Delete old thumbnail if exists
-            $oldThumbnail = $category->getRawOriginal('thumbnail');
-            if ($oldThumbnail && Storage::disk('public')->exists($oldThumbnail)) {
-                Storage::disk('public')->delete($oldThumbnail);
+            $old = $category->getRawOriginal('thumbnail');
+            if ($old && Storage::disk('public')->exists($old)) {
+                Storage::disk('public')->delete($old);
             }
             $validated['thumbnail'] = $request->file('thumbnail')->store('categories', 'public');
         }
 
+        if ($request->hasFile('category_icon')) {
+            $old = $category->getRawOriginal('category_icon');
+            if ($old && Storage::disk('public')->exists($old)) {
+                Storage::disk('public')->delete($old);
+            }
+            $validated['category_icon'] = $request->file('category_icon')->store('categories/icons', 'public');
+        }
+
+        if ($request->hasFile('page_title_background')) {
+            $old = $category->getRawOriginal('page_title_background');
+            if ($old && Storage::disk('public')->exists($old)) {
+                Storage::disk('public')->delete($old);
+            }
+            $validated['page_title_background'] = $request->file('page_title_background')->store('categories/backgrounds', 'public');
+        }
+
         $category->update($validated);
 
-        return response()->json($category);
+        return response()->json([
+            'success' => true,
+            'message' => 'Category updated successfully.',
+            'data' => $category
+        ]);
     }
 
     /**
@@ -79,13 +118,19 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category)
     {
-        $oldThumbnail = $category->getRawOriginal('thumbnail');
-        if ($oldThumbnail && Storage::disk('public')->exists($oldThumbnail)) {
-            Storage::disk('public')->delete($oldThumbnail);
+        // Delete all associated files
+        foreach (['thumbnail', 'category_icon', 'page_title_background'] as $fileField) {
+            $path = $category->getRawOriginal($fileField);
+            if ($path && Storage::disk('public')->exists($path)) {
+                Storage::disk('public')->delete($path);
+            }
         }
 
         $category->delete();
 
-        return response()->json(['message' => 'Category deleted successfully']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Category deleted successfully.'
+        ]);
     }
 }
